@@ -13,8 +13,16 @@ jobs:
 
       - name: Build dylib
         run: |
+          # Get iOS SDK path
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-          clang -fobjc-arc -dynamiclib Sources/CirclePopup.m -I Sources -isysroot $SDK_PATH -framework UIKit -o CirclePopup.dylib
+          
+          # Compile and link
+          clang -fobjc-arc -dynamiclib Sources/CirclePopup.m \
+            -I Sources \
+            -isysroot $SDK_PATH \
+            -framework UIKit \
+            -framework CoreGraphics \
+            -o CirclePopup.dylib
 
       - name: Upload dylib
         uses: actions/upload-artifact@v4
