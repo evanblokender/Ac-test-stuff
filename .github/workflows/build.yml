@@ -25,12 +25,17 @@ jobs:
 
       - name: Ad-hoc sign dylib
         run: |
-          CIRCLE_DYLIB=$(find ./.theos/obj/iphoneos/ -name "*.dylib" | head -n1)
-          echo "Signing $CIRCLE_DYLIB"
-          codesign -s - --force --timestamp=none "$CIRCLE_DYLIB"
+          CIRCLE_DYLIB="./.theos/obj/iphoneos/CirclePopup.dylib"
+          if [ -f "$CIRCLE_DYLIB" ]; then
+            echo "Signing $CIRCLE_DYLIB"
+            codesign -s - --force --timestamp=none "$CIRCLE_DYLIB"
+          else
+            echo "Error: $CIRCLE_DYLIB not found. Build failed."
+            exit 1
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: CirclePopup.dylib
-          path: ./.theos/obj/iphoneos/
+          path: ./.theos/obj/iphoneos/CirclePopup.dylib
