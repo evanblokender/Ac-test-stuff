@@ -14,7 +14,8 @@ jobs:
       - name: Install Theos
         run: |
           git clone --depth=1 https://github.com/theos/theos.git $HOME/theos
-          $HOME/theos/bin/update-theos   # <-- Add this line
+          export THEOS=$HOME/theos        # Set THEOS before update
+          $THEOS/bin/update-theos         # Now it works
 
       - name: Build CirclePopup
         run: |
