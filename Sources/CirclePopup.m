@@ -1,31 +1,31 @@
 #import "CirclePopup.h"
 #import <objc/runtime.h>
 
+// Storage for whether overlay installed
+static BOOL circleInstalled = NO;
+
 @implementation CirclePopup
 
-+ (void)loadLibrary:(UIWindow *)mainWindow {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        UIWindow *circleWindow = [[UIWindow alloc] initWithFrame:CGRectMake(100, 100, 80, 80)];
-        circleWindow.backgroundColor = [UIColor clearColor];
-        circleWindow.windowLevel = UIWindowLevelAlert + 1;
-        circleWindow.hidden = NO;
++ (void)installOverlayIfNeeded:(UIViewController*)vc {
+    if (circleInstalled) return;
+    circleInstalled = YES;
 
-        UIView *circle = [[UIView alloc] initWithFrame:circleWindow.bounds];
-        circle.backgroundColor = [UIColor systemBlueColor];
-        circle.layer.cornerRadius = 40;
-        circle.clipsToBounds = YES;
-        [circleWindow addSubview:circle];
+    UIView *rootView = vc.view;
+    if (!rootView) return;
 
-        // Drag gesture
-        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
-        [circle addGestureRecognizer:pan];
+    UIView *circle = [[UIView alloc] initWithFrame:CGRectMake(100, 150, 80, 80)];
+    circle.backgroundColor = [UIColor systemBlueColor];
+    circle.layer.cornerRadius = 40;
+    circle.clipsToBounds = YES;
 
-        // Tap gesture
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(circleTapped)];
-        [circle addGestureRecognizer:tap];
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+    [circle addGestureRecognizer:pan];
 
-        objc_setAssociatedObject(self, @"circleWindow", circleWindow, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    });
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(circleTapped)];
+    [circle addGestureRecognizer:tap];
+
+    [rootView addSubview:circle];
+    objc_setAssociatedObject(self, @"circleView", circle, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 + (void)handlePan:(UIPanGestureRecognizer *)pan {
@@ -36,40 +36,34 @@
 }
 
 + (void)circleTapped {
-    UIWindow *popup = [[UIWindow alloc] initWithFrame:CGRectMake(150, 200, 200, 150)];
+    UIView *rootView = UIApplication.sharedApplication.keyWindow.rootViewController.view;
+    if (!rootView) return;
+
+    UIView *popup = [[UIView alloc] initWithFrame:CGRectMake(50, 200, 220, 140)];
     popup.backgroundColor = [UIColor whiteColor];
     popup.layer.cornerRadius = 12;
-    popup.windowLevel = UIWindowLevelAlert + 2;
-    popup.hidden = NO;
 
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 200, 30)];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 220, 30)];
     label.text = @"Test";
     label.textAlignment = NSTextAlignmentCenter;
     [popup addSubview:label];
 
-    UILabel *footer = [[UILabel alloc] initWithFrame:CGRectMake(0, 120, 200, 20)];
+    UILabel *footer = [[UILabel alloc] initWithFrame:CGRectMake(0, 110, 220, 20)];
     footer.text = @"Created by EvanBlokEnder";
     footer.font = [UIFont systemFontOfSize:10];
     footer.textAlignment = NSTextAlignmentCenter;
     [popup addSubview:footer];
 
     UIButton *close = [UIButton buttonWithType:UIButtonTypeSystem];
-    close.frame = CGRectMake(170, 10, 20, 20);
+    close.frame = CGRectMake(200, 10, 20, 20);
     [close setTitle:@"X" forState:UIControlStateNormal];
-    [close addTarget:popup action:@selector(setHidden:) forControlEvents:UIControlEventTouchUpInside];
+    [close addTarget:popup action:@selector(removeFromSuperview) forControlEvents:UIControlEventTouchUpInside];
     [popup addSubview:close];
 
-    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePopupPan:)];
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
     [popup addGestureRecognizer:pan];
 
-    objc_setAssociatedObject(self, @"popupWindow", popup, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-+ (void)handlePopupPan:(UIPanGestureRecognizer *)pan {
-    UIView *popup = pan.view;
-    CGPoint translation = [pan translationInView:popup.superview];
-    popup.center = CGPointMake(popup.center.x + translation.x, popup.center.y + translation.y);
-    [pan setTranslation:CGPointZero inView:popup.superview];
+    [rootView addSubview:popup];
 }
 
 @end
