@@ -1,30 +1,34 @@
 #import "CirclePopup.h"
 #import <objc/runtime.h>
 
-// Storage for whether overlay installed
-static BOOL circleInstalled = NO;
+static BOOL installed = NO;
 
 @implementation CirclePopup
 
 + (void)installOverlayIfNeeded:(UIViewController*)vc {
-    if (circleInstalled) return;
-    circleInstalled = YES;
+    if (installed) return;
+    installed = YES;
 
     UIView *rootView = vc.view;
     if (!rootView) return;
 
+    // Create circle
     UIView *circle = [[UIView alloc] initWithFrame:CGRectMake(100, 150, 80, 80)];
     circle.backgroundColor = [UIColor systemBlueColor];
     circle.layer.cornerRadius = 40;
     circle.clipsToBounds = YES;
 
+    // Drag gesture
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
     [circle addGestureRecognizer:pan];
 
+    // Tap gesture
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(circleTapped)];
     [circle addGestureRecognizer:tap];
 
     [rootView addSubview:circle];
+    [rootView bringSubviewToFront:circle];
+
     objc_setAssociatedObject(self, @"circleView", circle, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
@@ -36,8 +40,8 @@ static BOOL circleInstalled = NO;
 }
 
 + (void)circleTapped {
-    UIView *rootView = UIApplication.sharedApplication.keyWindow.rootViewController.view;
-    if (!rootView) return;
+    UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
+    UIView *rootView = vc.view;
 
     UIView *popup = [[UIView alloc] initWithFrame:CGRectMake(50, 200, 220, 140)];
     popup.backgroundColor = [UIColor whiteColor];
@@ -64,6 +68,7 @@ static BOOL circleInstalled = NO;
     [popup addGestureRecognizer:pan];
 
     [rootView addSubview:popup];
+    [rootView bringSubviewToFront:popup];
 }
 
 @end
