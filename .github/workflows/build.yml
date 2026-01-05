@@ -14,8 +14,8 @@ jobs:
       - name: Install Theos
         run: |
           git clone --depth=1 https://github.com/theos/theos.git $HOME/theos
-          export THEOS=$HOME/theos        # Set THEOS before update
-          $THEOS/bin/update-theos         # Now it works
+          export THEOS=$HOME/theos
+          $THEOS/bin/update-theos
 
       - name: Build CirclePopup
         run: |
@@ -25,11 +25,12 @@ jobs:
 
       - name: Ad-hoc sign dylib
         run: |
-          CIRCLE_DYLIB=$(find ./obj/ -name "*.dylib" | head -n1)
+          CIRCLE_DYLIB=$(find ./.theos/obj/iphoneos/ -name "*.dylib" | head -n1)
+          echo "Signing $CIRCLE_DYLIB"
           codesign -s - --force --timestamp=none "$CIRCLE_DYLIB"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: CirclePopup.dylib
-          path: ./obj/
+          path: ./.theos/obj/iphoneos/
