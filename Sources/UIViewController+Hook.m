@@ -8,7 +8,6 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         Class class = [UIViewController class];
-
         SEL originalSelector = @selector(viewDidAppear:);
         SEL swizzledSelector = @selector(swizzled_viewDidAppear:);
 
@@ -22,7 +21,7 @@
 - (void)swizzled_viewDidAppear:(BOOL)animated {
     [self swizzled_viewDidAppear:animated]; // calls original viewDidAppear
 
-    // Install overlay on first view controller
+    // Install overlay only once
     [CirclePopup installOverlayIfNeeded:self];
 }
 
