@@ -2,35 +2,40 @@ name: Build CirclePopup
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Install Theos
+      - name: Setup Theos
+        uses: waruhachi/theos-action@v2.3.6
+        with:
+          theos-src: 'theos/theos'
+          theos-branch: 'master'
+          theos-dir: '~/theos'
+          sdks-src: 'theos/sdks'
+          sdks-branch: 'main'
+
+      - name: Build tweak
         run: |
-          git clone --depth=1 https://github.com/theos/theos.git $HOME/theos
           export THEOS=$HOME/theos
-          $THEOS/bin/update-theos
+          make clean
+          make
 
-      - name: Build CirclePopup
+      - name: Ad‑hoc sign dylib
         run: |
-          export THEOS=$HOME/theos
-          make -C $PWD clean
-          make -C $PWD
-
-      - name: Ad-hoc sign dylib
-        run: |
-          CIRCLE_DYLIB="./.theos/obj/iphoneos/CirclePopup.dylib"
-          if [ -f "$CIRCLE_DYLIB" ]; then
-            echo "Signing $CIRCLE_DYLIB"
-            codesign -s - --force --timestamp=none "$CIRCLE_DYLIB"
+          DYLIB="./.theos/obj/iphoneos/CirclePopup.dylib"
+          if [ -f "$DYLIB" ]; then
+            echo "Signing $DYLIB"
+            codesign -s - --force --timestamp=none "$DYLIB"
           else
-            echo "Error: $CIRCLE_DYLIB not found. Build failed."
+            echo "DYLIB not found — build failed."
             exit 1
           fi
 
