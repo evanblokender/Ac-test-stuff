@@ -1,0 +1,22 @@
+name: Build iOS Dylib
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build dylib
+        run: |
+          clang -fobjc-arc -dynamiclib Sources/CirclePopup.m -framework UIKit -o CirclePopup.dylib
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v3
+        with:
+          name: CirclePopup-dylib
+          path: CirclePopup.dylib
