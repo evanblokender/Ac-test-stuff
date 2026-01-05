@@ -2,6 +2,6 @@
 
 @interface CirclePopup : NSObject
 
-+ (void)loadLibrary:(UIWindow *)mainWindow;
++ (void)installOverlayIfNeeded:(UIViewController*)vc;
 
 @end
